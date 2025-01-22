@@ -15,6 +15,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.net.URL;
 
 
 public class SlotMachineUI {
@@ -22,6 +23,8 @@ public class SlotMachineUI {
     private JLabel[] reels;
     private JButton spinButton;
     private JButton advanceButton;
+    private JButton betButton;
+    private JLabel creditsLabel;
     private SlotMachineLogic logic;
     private JPanel reelsPanel;
 
@@ -60,21 +63,21 @@ public class SlotMachineUI {
         // En la creación inicial de los reels
         reels = new JLabel[3];
         for (int i = 0; i < 3; i++) {
-            reels[i] = new JLabel() {
-                @Override
-                public Dimension getPreferredSize() {
-                    // Mantener un tamaño consistente para el contenedor
-                    int size = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
-                    return new Dimension(size, size);
-                }
-            };
+            reels[i] = new JLabel();
+            URL resourceUrl = getClass().getResource("/icons/inicio.png");
+            if (resourceUrl != null) {
+                ImageIcon icon = new ImageIcon(resourceUrl);
+                int iconSize = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
+                iconSize = Math.max(iconSize, 48); // Tamaño mínimo
+                Image img = icon.getImage().getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH);
+                reels[i].setIcon(new ImageIcon(img));
+            } else {
+                System.err.println("No se pudo cargar el icono inicial: /icons/inicio.png");
+            }
             
             // Configuración inicial del reel
             reels[i].setHorizontalAlignment(SwingConstants.CENTER);
             reels[i].setVerticalAlignment(SwingConstants.CENTER);
-            reels[i].setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
-            reels[i].setForeground(Color.YELLOW);
-            reels[i].setText("🎰");
             reels[i].setOpaque(false);
             
             // Configuración del grid
@@ -85,25 +88,20 @@ public class SlotMachineUI {
             reelsPanel.add(reels[i], gbc);
         }
 
-        // Modificar el ComponentListener para manejar mejor el redimensionamiento
+        // Modificar el ComponentListener para manejar el redimensionamiento de iconos
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                int fontSize = Math.min(frame.getWidth() / 8, frame.getHeight() / 4);
-                fontSize = Math.max(fontSize, 32); // Establecer un tamaño mínimo
-                Font newFont = new Font("Segoe UI Emoji", Font.BOLD, fontSize);
+                int iconSize = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
+                iconSize = Math.max(iconSize, 48); // Tamaño mínimo
                 
                 for (JLabel reel : reels) {
-                    reel.setFont(newFont);
+                    Icon currentIcon = reel.getIcon();
+                    if (currentIcon instanceof ImageIcon) {
+                        Image img = ((ImageIcon) currentIcon).getImage();
+                        reel.setIcon(new ImageIcon(img.getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH)));
+                    }
                 }
-                
-                // Notificar a la lógica del nuevo tamaño
-                if (logic != null) {
-                    logic.setSymbolSize(fontSize);
-                }
-                
-                reelsPanel.revalidate();
-                reelsPanel.repaint();
             }
         });
 
@@ -124,6 +122,18 @@ public class SlotMachineUI {
         advanceButton.setEnabled(false);
         buttonPanel.add(advanceButton);
 
+        // Añadir botón de apuesta y etiqueta de créditos
+        betButton = new JButton("APUESTA: 100");
+        betButton.setFont(new Font("Arial", Font.BOLD, 20));
+        betButton.setBackground(Color.BLUE);
+        betButton.setForeground(Color.WHITE);
+        buttonPanel.add(betButton);
+
+        creditsLabel = new JLabel("CRÉDITOS: 5000");
+        creditsLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        creditsLabel.setForeground(Color.WHITE);
+        buttonPanel.add(creditsLabel);
+
         // Añadir paneles al panel principal con márgenes
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         mainPanel.add(reelsPanel, BorderLayout.CENTER);
@@ -136,40 +146,10 @@ public class SlotMachineUI {
         addButtonListeners();
     }
 
-    private void updateReels(String[] symbols) {
-        for (int i = 0; i < symbols.length; i++) {
-            if (symbols[i].equals("7")) {
-                reels[i].setText("7");
-                switch(i) {
-                    case 0: reels[i].setForeground(Color.RED); break;
-                    case 1: reels[i].setForeground(Color.GREEN); break;
-                    case 2: reels[i].setForeground(Color.BLUE); break;
-                }
-            } else {
-                reels[i].setForeground(Color.YELLOW);
-                reels[i].setText(symbols[i]);
-            }
-        }
-    }
+    
 
     // Modificar el método setSymbolColor para manejar los símbolos correctamente
-    private void setSymbolColor(JLabel label, String symbol) {
-        // Asegurarse de que la fuente sea consistente
-        label.setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
-        
-        if (symbol.startsWith("7")) {
-            label.setText("7");
-            switch(symbol) {
-                case "7R": label.setForeground(new Color(255, 50, 50)); break;
-                case "7G": label.setForeground(new Color(50, 255, 50)); break;
-                case "7B": label.setForeground(new Color(50, 50, 255)); break;
-            }
-        } else {
-            label.setForeground(Color.YELLOW);
-            // Usar el símbolo directamente sin procesamiento adicional
-            label.setText(symbol);
-        }
-    }
+    
 
     private void createReelPanel() {
         reelsPanel = new JPanel() {
@@ -226,6 +206,9 @@ public class SlotMachineUI {
                     ));
                     g2d.fillRect(0, 0, getWidth(), getHeight());
                 }
+
+                JPanel iconsPanel = new JPanel(new GridBagLayout());
+            iconsPanel.setOpaque(false);
             }
         };
         
@@ -236,18 +219,28 @@ public class SlotMachineUI {
 
     private void addButtonListeners() {
         spinButton.addActionListener(e -> {
-            spinButton.setEnabled(false);
-            advanceButton.setEnabled(false);
-            logic.spinWithAnimation(reels);
-            
-            Timer enableTimer = new Timer(3000, event -> {
-                spinButton.setEnabled(true);
-                if (logic.canAdvance()) {
-                    advanceButton.setEnabled(true);
-                }
-            });
-            enableTimer.setRepeats(false);
-            enableTimer.start();
+            if (logic.canBet()) {
+                spinButton.setEnabled(false);
+                advanceButton.setEnabled(false);
+                betButton.setEnabled(false);
+                logic.spinWithAnimation(reels);
+                
+                Timer enableTimer = new Timer(3000, event -> {
+                    spinButton.setEnabled(true);
+                    betButton.setEnabled(true);
+                    if (logic.canAdvance()) {
+                        advanceButton.setEnabled(true);
+                    }
+                    creditsLabel.setText("CRÉDITOS: " + logic.getPlayerCredits());
+                });
+                enableTimer.setRepeats(false);
+                enableTimer.start();
+            } else {
+                JOptionPane.showMessageDialog(frame, 
+                    "¡Créditos insuficientes para apostar!", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         advanceButton.addActionListener(e -> {
@@ -261,6 +254,20 @@ public class SlotMachineUI {
                     }
                 }
             }
+        });
+
+        betButton.addActionListener(e -> {
+            if (logic.increaseBet()) {
+                betButton.setText("APUESTA: " + logic.getCurrentBet());
+            } else {
+                logic.resetBet();
+                betButton.setText("APUESTA: " + logic.getCurrentBet());
+            }
+        });
+
+        logic.setWinListener(amount -> {
+            creditsLabel.setText("CRÉDITOS: " + logic.getPlayerCredits());
+            showWinMessage(amount);
         });
     }
     
@@ -325,5 +332,12 @@ public class SlotMachineUI {
         });
         stopTimer.setRepeats(false);
         stopTimer.start();
+    }
+
+    private void showWinMessage(int amount) {
+        JOptionPane.showMessageDialog(frame,
+            "¡Has ganado " + amount + " créditos!",
+            "¡Premio!",
+            JOptionPane.INFORMATION_MESSAGE);
     }
 }

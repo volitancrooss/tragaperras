@@ -23,25 +23,53 @@ import java.net.URL;
 
 public class SlotMachineLogic {
     private Random random;
-    private int symbolSize = 48;
+    private int symbolSize = 148;
     
     // Rutas a los iconos
     private static final String ICON_PATH = "/icons/";
     private ImageIcon[] symbolIcons;
     private String[] symbols = {
-        "seven", // Siete normal
-        "star",  // Estrella
+        "siete",   // Siete normal
+        "sandia",  // Sandía
         "diamond", // Diamante
-        "clover",  // Trébol
+        "campana", // Campana
         "apple",   // Manzana
-        "slot",    // Máquina tragaperras
-        "money"    // Bolsa de dinero
+        "dinero",  // Bolsa de dinero
+        "extraspin"    // Comodín
     };
     
+    // Valores de los símbolos (multiplicadores)
+    private static final int[] symbolValues = {
+        50,    // siete - mayor premio
+        30,    // sandia
+        25,    // diamond
+        20,    // campana
+        15,    // apple
+        10,    // dinero
+        40     // extraspin - valor alto para el comodín
+    };
+
+    // Sistema de apuestas
+    private int currentBet = 100;  // Apuesta inicial
+    private static final int[] BET_OPTIONS = {100, 200, 500, 1000};
+    private int currentBetIndex = 0;
+    private int playerCredits = 5000; // Créditos iniciales del jugador
+
     private Timer[] spinTimers;
     private int[] spinCounts;
     private int advancesRemaining = 0;
     private int advanceColumn = -1;
+
+    // Listener para notificar premios
+    private WinListener winListener;
+    
+    public interface WinListener {
+        void onWin(int amount);
+    }
+
+    public void setWinListener(WinListener listener) {
+        this.winListener = listener;
+    }
 
     public SlotMachineLogic() {
         random = new Random();
@@ -128,42 +156,62 @@ public class SlotMachineLogic {
 
     private void checkResults(JLabel[] reels) {
         String[] results = new String[3];
-        Color[] colors = new Color[3];
-        
         for (int i = 0; i < 3; i++) {
             results[i] = reels[i].getText();
-            colors[i] = reels[i].getForeground();
         }
 
-        // Verificar combinaciones ganadoras
+        int prize = 0;
         boolean hasWinningCombo = false;
-        
-        // Verificar tres iguales
+
+        // Tres símbolos iguales
         if (results[0].equals(results[1]) && results[1].equals(results[2])) {
-            if (results[0].equals("7")) {
-                if (colors[0] == colors[1] && colors[1] == colors[2]) {
-                    hasWinningCombo = true;
-                }
-            } else {
+            int symbolIndex = Arrays.asList(symbols).indexOf(results[0]);
+            if (symbolIndex >= 0) {
+                prize = currentBet * symbolValues[symbolIndex] * 3;
                 hasWinningCombo = true;
             }
         }
         
-        // Verificar dos iguales
-        for (int i = 0; i < 2 && !hasWinningCombo; i++) {
-            if (results[i].equals(results[i + 1])) {
-                if (results[i].equals("7")) {
-                    if (colors[i] == colors[i + 1]) {
-                        advancesRemaining = 2;
-                        advanceColumn = i;
+        // Dos símbolos iguales + posible comodín
+        if (!hasWinningCombo) {
+            for (int i = 0; i < 2; i++) {
+                if (results[i].equals(results[i + 1])) {
+                    int symbolIndex = Arrays.asList(symbols).indexOf(results[i]);
+                    if (symbolIndex >= 0) {
+                        int nextCol = i + 2;
+                        if (nextCol < 3 && results[nextCol].equals("extraspin")) {
+                            // Comodín encontrado - dar 2 tiradas extra en esa columna
+                            prize = currentBet * symbolValues[symbolIndex];
+                            advancesRemaining = 2;
+                            advanceColumn = nextCol;
+                        } else if (i > 0 && results[i - 1].equals("extraspin")) {
+                            // Comodín en primera columna
+                            prize = currentBet * symbolValues[symbolIndex];
+                            advancesRemaining = 2;
+                            advanceColumn = i - 1;
+                        } else {
+                            // Premio normal por dos símbolos
+                            prize = currentBet * symbolValues[symbolIndex];
+                            advancesRemaining = 2;
+                            advanceColumn = i;
+                        }
                         break;
                     }
-                } else {
-                    advancesRemaining = 2;
-                    advanceColumn = i;
-                    break;
                 }
             }
+        }
+
+        // Actualizar créditos del jugador
+        if (advancesRemaining > 0 && results[advanceColumn].equals("extraspin")) {
+            // No cobrar por tiradas extra con comodín
+            playerCredits += prize;
+        } else {
+            playerCredits += prize - currentBet;
+        }
+        
+        // Notificar a la UI del resultado
+        if (prize > 0) {
+            notifyWin(prize);
         }
     }
 
@@ -190,5 +238,41 @@ public class SlotMachineLogic {
             return symbols[random.nextInt(symbols.length)];
         }
         return null;
+    }
+
+    // Añadir getters para UI
+    public int getCurrentBet() {
+        return currentBet;
+    }
+
+    public int getPlayerCredits() {
+        return playerCredits;
+    }
+
+    // Método para incrementar la apuesta
+    public boolean increaseBet() {
+        if (currentBetIndex < BET_OPTIONS.length - 1) {
+            currentBetIndex++;
+            currentBet = BET_OPTIONS[currentBetIndex];
+            return true;
+        }
+        return false;
+    }
+
+    // Método para resetear la apuesta al mínimo
+    public void resetBet() {
+        currentBetIndex = 0;
+        currentBet = BET_OPTIONS[currentBetIndex];
+    }
+
+    // Método para verificar si el jugador puede apostar
+    public boolean canBet() {
+        return playerCredits >= currentBet;
+    }
+
+    private void notifyWin(int amount) {
+        if (winListener != null) {
+            winListener.onWin(amount);
+        }
     }
 }
