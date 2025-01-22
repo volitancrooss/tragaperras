@@ -52,7 +52,7 @@ public class SlotMachineUI {
         createReelPanel();
         reelsPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.fill = GridBagConstraints.NONE; // Cambiado de BOTH a NONE
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -60,25 +60,30 @@ public class SlotMachineUI {
 
         reels = new JLabel[3];
         for (int i = 0; i < 3; i++) {
-            reels[i] = new JLabel("🎰", SwingConstants.CENTER);
+            reels[i] = new JLabel("🎰", SwingConstants.CENTER) {
+                @Override
+                public Dimension getPreferredSize() {
+                    // Forzar un tamaño fijo para el contenedor del símbolo
+                    int size = Math.min(frame.getWidth() / 4, frame.getHeight() / 3);
+                    return new Dimension(size, size);
+                }
+            };
+            
             reels[i].setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
             reels[i].setForeground(Color.YELLOW);
             reels[i].setOpaque(false);
             
-            // Hacer que los labels se adapten al tamaño
+            // Centrado estricto
             reels[i].setHorizontalAlignment(SwingConstants.CENTER);
             reels[i].setVerticalAlignment(SwingConstants.CENTER);
             
-            // Usar posición simple para el grid
+            // Configuración del grid
             gbc.gridx = i;
             gbc.gridy = 0;
-            gbc.weightx = 1.0;
             reelsPanel.add(reels[i], gbc);
-            
-            
         }
 
-        // Añadir un ComponentListener para manejar el redimensionamiento
+        // Modificar el ComponentListener para manejar mejor el redimensionamiento
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
@@ -86,7 +91,9 @@ public class SlotMachineUI {
                 Font newFont = new Font("Segoe UI Emoji", Font.BOLD, fontSize);
                 for (JLabel reel : reels) {
                     reel.setFont(newFont);
+                    reel.revalidate(); // Forzar actualización del layout
                 }
+                reelsPanel.revalidate(); // Actualizar el panel contenedor
             }
         });
 
