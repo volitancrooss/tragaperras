@@ -5,15 +5,34 @@ import javax.swing.JLabel;
 import javax.swing.Timer;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import javax.swing.ImageIcon;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.FontMetrics;
+import javax.swing.border.Border;
+import java.awt.AlphaComposite;
+import javax.swing.BorderFactory;
 
 public class SlotMachineLogic {
     private Random random;
     private static final String ADVANCE_SYMBOL = "⏩";
-    private String[] symbols = {"💎", "🍎", "💣", "⏩", "🐍", "💀", "7G", "7R", "7B"};
-    private int advancesRemaining = 0;
-    private int advanceColumn = -1;
+    private static final String SEVEN_RED = "7R";
+    private static final String SEVEN_GREEN = "7G";
+    private static final String SEVEN_BLUE = "7B";
+    
+    private String[] symbols = {
+        SEVEN_RED, SEVEN_GREEN, SEVEN_BLUE,
+        "⭐", "💎", "🍀", "🎲", "🎰", "💰"
+    };
+    
     private Timer[] spinTimers;
     private int[] spinCounts;
+    private int advancesRemaining = 0;
+    private int advanceColumn = -1;
 
     public SlotMachineLogic() {
         random = new Random();
@@ -22,86 +41,170 @@ public class SlotMachineLogic {
     }
 
     public void spinWithAnimation(JLabel[] reels) {
+        // Pre-generar algunos símbolos aleatorios
+        String[][] preGeneratedSymbols = new String[3][30];
         for (int i = 0; i < 3; i++) {
-            final int col = i;  // Make a final copy of i
+            for (int j = 0; j < 30; j++) {
+                preGeneratedSymbols[i][j] = symbols[random.nextInt(symbols.length)];
+            }
+        }
+
+        for (int i = 0; i < 3; i++) {
+            final int col = i;
             spinCounts[col] = 0;
             
-            spinTimers[col] = new Timer(50, new ActionListener() {
+            spinTimers[col] = new Timer(16, new ActionListener() { // Cambiar a 16ms (aprox. 60 FPS)
+                private int symbolIndex = 0;
+                
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    String symbol = symbols[random.nextInt(symbols.length)];
-                    reels[col].setText(symbol);
+                    updateReelSymbol(reels[col], preGeneratedSymbols[col][symbolIndex++ % 30]);
                     spinCounts[col]++;
                     
-                    // Detener después de un número aleatorio de giros
                     if (spinCounts[col] >= 20 + (col * 10)) {
                         spinTimers[col].stop();
-                        // Establecer símbolo final
                         String finalSymbol = symbols[random.nextInt(symbols.length)];
-                        reels[col].setText(finalSymbol);
+                        updateReelSymbol(reels[col], finalSymbol);
                         
-                        // Comprobar si todos los reels han parado
                         if (allReelsStopped()) {
-                            String[] results = new String[3];
-                            for (int j = 0; j < 3; j++) {
-                                results[j] = reels[j].getText();
-                            }
-                            checkAdvanceCombo(results);
+                            checkResults(reels);
                         }
                     }
                 }
             });
             
-            // Usar col en lugar de i para el Timer
-            Timer startDelay = new Timer(col * 400, e -> spinTimers[col].start());
+            Timer startDelay = new Timer(col * 200, e -> spinTimers[col].start());
             startDelay.setRepeats(false);
             startDelay.start();
         }
     }
 
+    public void updateReelSymbol(JLabel reel, String symbol) {
+        // Evitar actualizaciones innecesarias si el símbolo es el mismo
+        if (reel.getText().equals(symbol)) return;
+        
+        if (symbol.startsWith("7")) {
+            Color newColor;
+            switch(symbol) {
+                case SEVEN_RED: newColor = Color.RED; break;
+                case SEVEN_GREEN: newColor = Color.GREEN; break;
+                case SEVEN_BLUE: newColor = Color.BLUE; break;
+                default: newColor = reel.getForeground(); break;
+            }
+            
+            if (!reel.getForeground().equals(newColor)) {
+                reel.setForeground(newColor);
+            }
+            reel.setText("7");
+        } else {
+            if (!reel.getForeground().equals(Color.YELLOW)) {
+                reel.setForeground(Color.YELLOW);
+            }
+            reel.setText(symbol);
+        }
+    }
+
+    private void updateReelSymbolOld(JLabel reel, String symbol) {
+        // Configurar un tamaño de fuente más grande
+        reel.setFont(new Font("Segoe UI Emoji", Font.BOLD, 60));
+        
+        // Añadir un borde con efecto de resplandor
+        reel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.DARK_GRAY, 2),
+            BorderFactory.createEmptyBorder(5, 5, 5, 5)
+        ));
+
+        if (symbol.startsWith("7")) {
+            reel.setText("7");
+            switch(symbol) {
+                case SEVEN_RED: 
+                    reel.setForeground(new Color(255, 50, 50));
+                    reel.setBorder(BorderFactory.createLineBorder(Color.RED, 3));
+                    break;
+                case SEVEN_GREEN: 
+                    reel.setForeground(new Color(50, 255, 50));
+                    reel.setBorder(BorderFactory.createLineBorder(Color.GREEN, 3));
+                    break;
+                case SEVEN_BLUE: 
+                    reel.setForeground(new Color(50, 50, 255));
+                    reel.setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
+                    break;
+            }
+        } else {
+            switch(symbol) {
+                case "⭐":
+                    reel.setForeground(new Color(255, 215, 0)); // Dorado brillante
+                    break;
+                case "💎":
+                    reel.setForeground(new Color(0, 191, 255)); // Azul celeste brillante
+                    break;
+                case "🍀":
+                    reel.setForeground(new Color(50, 205, 50)); // Verde lima brillante
+                    break;
+                case "🎲":
+                    reel.setForeground(new Color(255, 255, 255)); // Blanco puro
+                    break;
+                case "🎰":
+                    reel.setForeground(new Color(255, 140, 0)); // Naranja brillante
+                    break;
+                case "💰":
+                    reel.setForeground(new Color(255, 215, 0)); // Dorado brillante
+                    break;
+                default:
+                    reel.setForeground(new Color(255, 255, 0)); // Amarillo brillante
+            }
+            reel.setText(symbol);
+        }
+    }
+
+    private void checkResults(JLabel[] reels) {
+        String[] results = new String[3];
+        Color[] colors = new Color[3];
+        
+        for (int i = 0; i < 3; i++) {
+            results[i] = reels[i].getText();
+            colors[i] = reels[i].getForeground();
+        }
+
+        // Verificar combinaciones ganadoras
+        boolean hasWinningCombo = false;
+        
+        // Verificar tres iguales
+        if (results[0].equals(results[1]) && results[1].equals(results[2])) {
+            if (results[0].equals("7")) {
+                if (colors[0] == colors[1] && colors[1] == colors[2]) {
+                    hasWinningCombo = true;
+                }
+            } else {
+                hasWinningCombo = true;
+            }
+        }
+        
+        // Verificar dos iguales
+        for (int i = 0; i < 2 && !hasWinningCombo; i++) {
+            if (results[i].equals(results[i + 1])) {
+                if (results[i].equals("7")) {
+                    if (colors[i] == colors[i + 1]) {
+                        advancesRemaining = 2;
+                        advanceColumn = i;
+                        break;
+                    }
+                } else {
+                    advancesRemaining = 2;
+                    advanceColumn = i;
+                    break;
+                }
+            }
+        }
+    }
+
     private boolean allReelsStopped() {
         for (Timer timer : spinTimers) {
-            if (timer.isRunning()) {
+            if (timer != null && timer.isRunning()) {
                 return false;
             }
         }
         return true;
-    }
-
-    public String[] spin() {
-        String[] results = new String[3];
-        for (int i = 0; i < 3; i++) {
-            results[i] = symbols[random.nextInt(symbols.length)];
-        }
-        checkAdvanceCombo(results);
-        return results;
-    }
-
-    private void checkAdvanceCombo(String[] results) {
-        // Buscar el símbolo de avance
-        for (int i = 0; i < results.length; i++) {
-            if (results[i].equals(ADVANCE_SYMBOL)) {
-                // Verificar si los otros dos símbolos son iguales
-                String otherSymbol = null;
-                boolean validCombo = true;
-                
-                for (int j = 0; j < results.length; j++) {
-                    if (j != i) {
-                        if (otherSymbol == null) {
-                            otherSymbol = results[j];
-                        } else if (!results[j].equals(otherSymbol)) {
-                            validCombo = false;
-                            break;
-                        }
-                    }
-                }
-                
-                if (validCombo) {
-                    advancesRemaining = 2;
-                    advanceColumn = i;
-                }
-            }
-        }
     }
 
     public boolean canAdvance() {
