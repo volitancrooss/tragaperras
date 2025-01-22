@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+group 'com.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'javax.swing:swing:1.0.0' // Swing for GUI
+    // Add other dependencies as needed
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'Main'
+        )
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
