@@ -1,9 +1,9 @@
-# Slot Machine App
+# Aplicación de Tragaperras
 
-## Overview
-The Slot Machine App is a creative and interactive slot machine game developed in Java. It features a graphical user interface (GUI) that allows players to experience the thrill of spinning reels and winning prizes.
+## Descripción General
+La Aplicación de Tragaperras es un juego de tragaperras creativo e interactivo desarrollado en Java. Cuenta con una interfaz gráfica de usuario (GUI) que permite a los jugadores experimentar la emoción de girar los carretes y ganar premios.
 
-## Project Structure
+## Estructura del Proyecto
 ```
 SlotMachineApp
 ├── src
@@ -19,18 +19,18 @@ SlotMachineApp
 └── README.md
 ```
 
-## Features
-- **Interactive GUI**: The application provides a user-friendly interface for players to engage with the slot machine.
-- **Game Logic**: The core logic for spinning the reels and determining wins is encapsulated in the `SlotMachineLogic` class.
-- **Image Assets**: The app includes various images for the slot machine symbols, enhancing the visual appeal of the game.
+## Características
+- **GUI Interactiva**: La aplicación proporciona una interfaz fácil de usar para que los jugadores interactúen con la máquina tragaperras.
+- **Lógica del Juego**: La lógica central para girar los carretes y determinar las ganancias está encapsulada en la clase `SlotMachineLogic`.
+- **Recursos de Imágenes**: La aplicación incluye varias imágenes para los símbolos de la máquina tragaperras, mejorando el atractivo visual del juego.
 
-## Getting Started
+## Comenzando
 
-### Prerequisites
-- Java Development Kit (JDK) installed on your machine.
-- Gradle for building the project.
+### Requisitos Previos
+- Kit de Desarrollo de Java (JDK) instalado en tu máquina.
+- Gradle para construir el proyecto.
 
-### Running the Application
+### Ejecutar la Aplicación
 1. Clone the repository:
    ```
    git clone <repository-url>
@@ -48,8 +48,8 @@ SlotMachineApp
    java -cp build/libs/SlotMachineApp.jar Main
    ```
 
-## Contributing
-Contributions are welcome! Please feel free to submit a pull request or open an issue for any enhancements or bug fixes.
+## Contribuir
+¡Las contribuciones son bienvenidas! No dudes en enviar una solicitud de extracción o abrir un problema para cualquier mejora o corrección de errores.
 
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
+## Licencia
+Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
