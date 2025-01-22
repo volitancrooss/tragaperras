@@ -18,7 +18,6 @@ import java.awt.Toolkit;
 
 
 public class SlotMachineUI {
-    private static final String ADVANCE_SYMBOL = "⏩"; // Add constant
     private JFrame frame;
     private JLabel[] reels;
     private JButton spinButton;
@@ -58,28 +57,31 @@ public class SlotMachineUI {
         gbc.anchor = GridBagConstraints.CENTER;
         gbc.insets = new Insets(10, 10, 10, 10);
 
+        // En la creación inicial de los reels
         reels = new JLabel[3];
         for (int i = 0; i < 3; i++) {
-            reels[i] = new JLabel("🎰", SwingConstants.CENTER) {
+            reels[i] = new JLabel() {
                 @Override
                 public Dimension getPreferredSize() {
-                    // Forzar un tamaño fijo para el contenedor del símbolo
-                    int size = Math.min(frame.getWidth() / 4, frame.getHeight() / 3);
+                    // Mantener un tamaño consistente para el contenedor
+                    int size = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
                     return new Dimension(size, size);
                 }
             };
             
-            reels[i].setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
-            reels[i].setForeground(Color.YELLOW);
-            reels[i].setOpaque(false);
-            
-            // Centrado estricto
+            // Configuración inicial del reel
             reels[i].setHorizontalAlignment(SwingConstants.CENTER);
             reels[i].setVerticalAlignment(SwingConstants.CENTER);
+            reels[i].setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
+            reels[i].setForeground(Color.YELLOW);
+            reels[i].setText("🎰");
+            reels[i].setOpaque(false);
             
             // Configuración del grid
             gbc.gridx = i;
             gbc.gridy = 0;
+            gbc.fill = GridBagConstraints.NONE;
+            gbc.anchor = GridBagConstraints.CENTER;
             reelsPanel.add(reels[i], gbc);
         }
 
@@ -88,12 +90,20 @@ public class SlotMachineUI {
             @Override
             public void componentResized(ComponentEvent e) {
                 int fontSize = Math.min(frame.getWidth() / 8, frame.getHeight() / 4);
+                fontSize = Math.max(fontSize, 32); // Establecer un tamaño mínimo
                 Font newFont = new Font("Segoe UI Emoji", Font.BOLD, fontSize);
+                
                 for (JLabel reel : reels) {
                     reel.setFont(newFont);
-                    reel.revalidate(); // Forzar actualización del layout
                 }
-                reelsPanel.revalidate(); // Actualizar el panel contenedor
+                
+                // Notificar a la lógica del nuevo tamaño
+                if (logic != null) {
+                    logic.setSymbolSize(fontSize);
+                }
+                
+                reelsPanel.revalidate();
+                reelsPanel.repaint();
             }
         });
 
@@ -142,16 +152,21 @@ public class SlotMachineUI {
         }
     }
 
+    // Modificar el método setSymbolColor para manejar los símbolos correctamente
     private void setSymbolColor(JLabel label, String symbol) {
+        // Asegurarse de que la fuente sea consistente
+        label.setFont(new Font("Segoe UI Emoji", Font.BOLD, 48));
+        
         if (symbol.startsWith("7")) {
             label.setText("7");
             switch(symbol) {
-                case "7R": label.setForeground(Color.RED); break;
-                case "7G": label.setForeground(Color.GREEN); break;
-                case "7B": label.setForeground(Color.BLUE); break;
+                case "7R": label.setForeground(new Color(255, 50, 50)); break;
+                case "7G": label.setForeground(new Color(50, 255, 50)); break;
+                case "7B": label.setForeground(new Color(50, 50, 255)); break;
             }
         } else {
             label.setForeground(Color.YELLOW);
+            // Usar el símbolo directamente sin procesamiento adicional
             label.setText(symbol);
         }
     }
@@ -164,31 +179,59 @@ public class SlotMachineUI {
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
-                // Fondo metálico con menor opacidad
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-                GradientPaint metallic = new GradientPaint(0, 0, new Color(120, 120, 120),
-                                                          getWidth(), getHeight(), new Color(80, 80, 80));
-                g2d.setPaint(metallic);
+                // Fondo con efecto neón futurista
+                GradientPaint neonGlow = new GradientPaint(
+                    0, 0, new Color(25, 0, 50),
+                    getWidth(), getHeight(), new Color(50, 0, 100)
+                );
+                g2d.setPaint(neonGlow);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
                 
-                // Marcos de los rodillos con menor opacidad
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.2f));
-                int reelWidth = getWidth() / 3;
-                int reelHeight = getHeight();
+                // Efecto de líneas de neón
+                g2d.setStroke(new BasicStroke(2f));
+                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
                 
+                // Dibujar marcos de neón para cada rodillo
                 for (int i = 0; i < 3; i++) {
-                    g2d.setColor(new Color(200, 200, 200));
-                    g2d.drawRect(i * reelWidth, 0, reelWidth, reelHeight);
+                    int x = (getWidth() / 3) * i;
                     
-                    // Efecto de brillo muy sutil
-                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f));
-                    g2d.setPaint(new GradientPaint(i * reelWidth, 0, Color.WHITE,
-                                                 (i + 1) * reelWidth, reelHeight, new Color(255, 255, 255, 0)));
-                    g2d.fillRect(i * reelWidth, 0, reelWidth, reelHeight);
+                    GradientPaint neonBorder = new GradientPaint(
+                        x, 0, new Color(0, 255, 255, 150),
+                        x + getWidth()/3, getHeight(), new Color(255, 0, 255, 150)
+                    );
+                    g2d.setPaint(neonBorder);
+                    g2d.drawRect(x + 5, 5, (getWidth()/3) - 10, getHeight() - 10);
+                }
+                
+                // Efecto de brillo en movimiento (corregido)
+                long currentTime = System.currentTimeMillis();
+                float glowPosition = (float)((currentTime % 3000) / 3000.0);
+                
+                // Asegurar que los valores de fracción estén entre 0 y 1
+                float start = Math.max(0, glowPosition - 0.2f);
+                float middle = glowPosition;
+                float end = Math.min(1, glowPosition + 0.2f);
+                
+                if (start < end) { // Solo dibujar si los valores son válidos
+                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
+                    g2d.setPaint(new LinearGradientPaint(
+                        0, 0,
+                        getWidth(), 0,
+                        new float[]{start, middle, end},
+                        new Color[]{
+                            new Color(0, 0, 0, 0),
+                            new Color(255, 255, 255, 100),
+                            new Color(0, 0, 0, 0)
+                        }
+                    ));
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
                 }
             }
         };
-        reelsPanel.setOpaque(false);
+        
+        // Configurar temporizador para la animación del brillo
+        Timer glowTimer = new Timer(16, e -> reelsPanel.repaint());
+        glowTimer.start();
     }
 
     private void addButtonListeners() {
@@ -219,5 +262,68 @@ public class SlotMachineUI {
                 }
             }
         });
+    }
+    
+    private void setupSymbolEffects(JLabel reel) {
+        reel.putClientProperty("glow", 0.0f);
+        
+        Timer glowTimer = new Timer(50, e -> {
+            float glow = (float)reel.getClientProperty("glow");
+            glow = (glow + 0.1f) % 1.0f;
+            reel.putClientProperty("glow", glow);
+            
+            // Efecto de brillo pulsante
+            float alpha = (float)(Math.sin(glow * Math.PI * 2) * 0.5 + 0.5);
+            reel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(
+                    new Color(1f, 1f, 1f, alpha),
+                    2
+                ),
+                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+            ));
+        });
+        glowTimer.start();
+    }
+    
+    private void showWinAnimation() {
+        JPanel winEffect = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // Efecto de fuegos artificiales
+                long time = System.currentTimeMillis();
+                int particles = 20;
+                for (int i = 0; i < particles; i++) {
+                    double angle = (time / 1000.0 + i * (Math.PI * 2 / particles));
+                    int x = getWidth()/2 + (int)(Math.cos(angle) * 100);
+                    int y = getHeight()/2 + (int)(Math.sin(angle) * 100);
+                    
+                    g2d.setColor(new Color(
+                        (float)Math.random(),
+                        (float)Math.random(),
+                        (float)Math.random(),
+                        0.8f
+                    ));
+                    g2d.fillOval(x-5, y-5, 10, 10);
+                }
+            }
+        };
+        winEffect.setOpaque(false);
+        reelsPanel.add(winEffect, 0);
+        
+        Timer winTimer = new Timer(16, e -> winEffect.repaint());
+        winTimer.start();
+        
+        // Detener la animación después de 3 segundos
+        Timer stopTimer = new Timer(3000, e -> {
+            winTimer.stop();
+            reelsPanel.remove(winEffect);
+            reelsPanel.repaint();
+        });
+        stopTimer.setRepeats(false);
+        stopTimer.start();
     }
 }

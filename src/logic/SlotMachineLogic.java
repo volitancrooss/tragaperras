@@ -16,17 +16,26 @@ import java.awt.FontMetrics;
 import javax.swing.border.Border;
 import java.awt.AlphaComposite;
 import javax.swing.BorderFactory;
+import java.awt.Image;
+import java.util.Arrays;
+import javax.swing.SwingConstants;
+import java.net.URL;
 
 public class SlotMachineLogic {
     private Random random;
-    private static final String ADVANCE_SYMBOL = "⏩";
-    private static final String SEVEN_RED = "7R";
-    private static final String SEVEN_GREEN = "7G";
-    private static final String SEVEN_BLUE = "7B";
+    private int symbolSize = 48;
     
+    // Rutas a los iconos
+    private static final String ICON_PATH = "/icons/";
+    private ImageIcon[] symbolIcons;
     private String[] symbols = {
-        SEVEN_RED, SEVEN_GREEN, SEVEN_BLUE,
-        "⭐", "💎", "🍀", "🎲", "🎰", "💰"
+        "seven", // Siete normal
+        "star",  // Estrella
+        "diamond", // Diamante
+        "clover",  // Trébol
+        "apple",   // Manzana
+        "slot",    // Máquina tragaperras
+        "money"    // Bolsa de dinero
     };
     
     private Timer[] spinTimers;
@@ -38,6 +47,31 @@ public class SlotMachineLogic {
         random = new Random();
         spinTimers = new Timer[3];
         spinCounts = new int[3];
+        loadIcons();
+    }
+    
+    private void loadIcons() {
+        symbolIcons = new ImageIcon[symbols.length];
+        try {
+            for (int i = 0; i < symbols.length; i++) {
+                String path = ICON_PATH + symbols[i] + ".png";
+                URL resourceUrl = SlotMachineLogic.class.getResource(path);
+                if (resourceUrl == null) {
+                    System.err.println("No se pudo encontrar el recurso: " + path);
+                    continue;
+                }
+                ImageIcon icon = new ImageIcon(resourceUrl);
+                Image img = icon.getImage().getScaledInstance(symbolSize, symbolSize, Image.SCALE_SMOOTH);
+                symbolIcons[i] = new ImageIcon(img);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setSymbolSize(int size) {
+        this.symbolSize = size;
+        loadIcons(); // Recargar iconos con nuevo tamaño
     }
 
     public void spinWithAnimation(JLabel[] reels) {
@@ -80,81 +114,16 @@ public class SlotMachineLogic {
     }
 
     public void updateReelSymbol(JLabel reel, String symbol) {
-        // Evitar actualizaciones innecesarias si el símbolo es el mismo
-        if (reel.getText().equals(symbol)) return;
+        reel.setText("");
+        reel.setBorder(null);
         
-        if (symbol.startsWith("7")) {
-            Color newColor;
-            switch(symbol) {
-                case SEVEN_RED: newColor = Color.RED; break;
-                case SEVEN_GREEN: newColor = Color.GREEN; break;
-                case SEVEN_BLUE: newColor = Color.BLUE; break;
-                default: newColor = reel.getForeground(); break;
-            }
-            
-            if (!reel.getForeground().equals(newColor)) {
-                reel.setForeground(newColor);
-            }
-            reel.setText("7");
-        } else {
-            if (!reel.getForeground().equals(Color.YELLOW)) {
-                reel.setForeground(Color.YELLOW);
-            }
-            reel.setText(symbol);
+        int index = Arrays.asList(symbols).indexOf(symbol);
+        if (index >= 0) {
+            reel.setIcon(symbolIcons[index]);
         }
-    }
-
-    private void updateReelSymbolOld(JLabel reel, String symbol) {
-        // Configurar un tamaño de fuente más grande
-        reel.setFont(new Font("Segoe UI Emoji", Font.BOLD, 60));
         
-        // Añadir un borde con efecto de resplandor
-        reel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.DARK_GRAY, 2),
-            BorderFactory.createEmptyBorder(5, 5, 5, 5)
-        ));
-
-        if (symbol.startsWith("7")) {
-            reel.setText("7");
-            switch(symbol) {
-                case SEVEN_RED: 
-                    reel.setForeground(new Color(255, 50, 50));
-                    reel.setBorder(BorderFactory.createLineBorder(Color.RED, 3));
-                    break;
-                case SEVEN_GREEN: 
-                    reel.setForeground(new Color(50, 255, 50));
-                    reel.setBorder(BorderFactory.createLineBorder(Color.GREEN, 3));
-                    break;
-                case SEVEN_BLUE: 
-                    reel.setForeground(new Color(50, 50, 255));
-                    reel.setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
-                    break;
-            }
-        } else {
-            switch(symbol) {
-                case "⭐":
-                    reel.setForeground(new Color(255, 215, 0)); // Dorado brillante
-                    break;
-                case "💎":
-                    reel.setForeground(new Color(0, 191, 255)); // Azul celeste brillante
-                    break;
-                case "🍀":
-                    reel.setForeground(new Color(50, 205, 50)); // Verde lima brillante
-                    break;
-                case "🎲":
-                    reel.setForeground(new Color(255, 255, 255)); // Blanco puro
-                    break;
-                case "🎰":
-                    reel.setForeground(new Color(255, 140, 0)); // Naranja brillante
-                    break;
-                case "💰":
-                    reel.setForeground(new Color(255, 215, 0)); // Dorado brillante
-                    break;
-                default:
-                    reel.setForeground(new Color(255, 255, 0)); // Amarillo brillante
-            }
-            reel.setText(symbol);
-        }
+        reel.setHorizontalAlignment(SwingConstants.CENTER);
+        reel.setVerticalAlignment(SwingConstants.CENTER);
     }
 
     private void checkResults(JLabel[] reels) {
