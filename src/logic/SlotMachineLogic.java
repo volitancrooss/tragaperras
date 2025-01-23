@@ -20,6 +20,7 @@ import java.awt.Image;
 import java.util.Arrays;
 import javax.swing.SwingConstants;
 import java.net.URL;
+import javax.swing.Icon;
 
 public class SlotMachineLogic {
     private Random random;
@@ -49,6 +50,9 @@ public class SlotMachineLogic {
         40     // extraspin - valor alto para el comodín
     };
 
+    // Añadir constante para el premio de tres comodines
+    private static final int EXTRASPIN_TRIPLE_PRIZE = 5; // Premio bajo para 3 comodines
+
     // Sistema de apuestas
     private int currentBet = 100;  // Apuesta inicial
     private static final int[] BET_OPTIONS = {100, 200, 500, 1000};
@@ -63,8 +67,15 @@ public class SlotMachineLogic {
     // Listener para notificar premios
     private WinListener winListener;
     
+    // Añadir variables para controlar el estado del comodín
+    private boolean isExtraSpinActive = false;
+    private int extraSpinsRemaining = 0;
+    private int extraSpinColumn = -1;
+    private String[] currentCombination = new String[3];
+
     public interface WinListener {
         void onWin(int amount);
+        void onExtraSpinActivated(int column);
     }
 
     public void setWinListener(WinListener listener) {
@@ -154,64 +165,82 @@ public class SlotMachineLogic {
         reel.setVerticalAlignment(SwingConstants.CENTER);
     }
 
-    private void checkResults(JLabel[] reels) {
+    // Modificar checkResults para no interferir con los avances del comodín
+    public void checkResults(JLabel[] reels) {
         String[] results = new String[3];
         for (int i = 0; i < 3; i++) {
-            results[i] = reels[i].getText();
+            Icon icon = reels[i].getIcon();
+            if (icon instanceof ImageIcon) {
+                int index = Arrays.asList(symbolIcons).indexOf(icon);
+                if (index >= 0) {
+                    results[i] = symbols[index];
+                }
+            }
         }
+        currentCombination = results.clone();
 
         int prize = 0;
         boolean hasWinningCombo = false;
 
-        // Tres símbolos iguales
-        if (results[0].equals(results[1]) && results[1].equals(results[2])) {
+        // Caso especial: tres comodines
+        if (results[0].equals("extraspin") && results[1].equals("extraspin") && results[2].equals("extraspin")) {
+            prize = currentBet * EXTRASPIN_TRIPLE_PRIZE;
+            hasWinningCombo = true;
+            // No activar extraSpin en este caso
+            isExtraSpinActive = false;
+            extraSpinsRemaining = 0;
+        }
+        // Verificar tres símbolos iguales (que no sean comodines)
+        else if (results[0].equals(results[1]) && results[1].equals(results[2]) && !results[0].equals("extraspin")) {
             int symbolIndex = Arrays.asList(symbols).indexOf(results[0]);
             if (symbolIndex >= 0) {
                 prize = currentBet * symbolValues[symbolIndex] * 3;
                 hasWinningCombo = true;
-            }
-        }
-        
-        // Dos símbolos iguales + posible comodín
-        if (!hasWinningCombo) {
-            for (int i = 0; i < 2; i++) {
-                if (results[i].equals(results[i + 1])) {
-                    int symbolIndex = Arrays.asList(symbols).indexOf(results[i]);
-                    if (symbolIndex >= 0) {
-                        int nextCol = i + 2;
-                        if (nextCol < 3 && results[nextCol].equals("extraspin")) {
-                            // Comodín encontrado - dar 2 tiradas extra en esa columna
-                            prize = currentBet * symbolValues[symbolIndex];
-                            advancesRemaining = 2;
-                            advanceColumn = nextCol;
-                        } else if (i > 0 && results[i - 1].equals("extraspin")) {
-                            // Comodín en primera columna
-                            prize = currentBet * symbolValues[symbolIndex];
-                            advancesRemaining = 2;
-                            advanceColumn = i - 1;
-                        } else {
-                            // Premio normal por dos símbolos
-                            prize = currentBet * symbolValues[symbolIndex];
-                            advancesRemaining = 2;
-                            advanceColumn = i;
-                        }
-                        break;
-                    }
+                // Si esto ocurre durante un extraSpin, desactivar el modo extraSpin
+                if (isExtraSpinActive) {
+                    isExtraSpinActive = false;
+                    extraSpinsRemaining = 0;
                 }
             }
         }
-
-        // Actualizar créditos del jugador
-        if (advancesRemaining > 0 && results[advanceColumn].equals("extraspin")) {
-            // No cobrar por tiradas extra con comodín
-            playerCredits += prize;
-        } else {
-            playerCredits += prize - currentBet;
+        // Solo verificar combinaciones con comodín si no hay triple
+        else if (!hasWinningCombo && !isExtraSpinActive) {
+            // Caso 1: SIMBOLO SIMBOLO EXTRASPIN
+            if (results[0].equals(results[1]) && results[2].equals("extraspin")) {
+                activateExtraSpin(2, results[0]);
+            }
+            // Caso 2: SIMBOLO EXTRASPIN SIMBOLO
+            else if (results[0].equals(results[2]) && results[1].equals("extraspin")) {
+                activateExtraSpin(1, results[0]);
+            }
+            // Caso 3: EXTRASPIN SIMBOLO SIMBOLO
+            else if (results[1].equals(results[2]) && results[0].equals("extraspin")) {
+                activateExtraSpin(0, results[1]);
+            }
         }
-        
-        // Notificar a la UI del resultado
+
+        // Actualizar créditos
         if (prize > 0) {
+            if (hasWinningCombo || !isExtraSpinActive) {
+                playerCredits += prize - currentBet;
+            } else {
+                playerCredits += prize; // No cobrar apuesta durante extraSpin
+            }
             notifyWin(prize);
+        } else if (!isExtraSpinActive) {
+            playerCredits -= currentBet;
+        }
+    }
+
+    // Modificar la clase SlotMachineLogic
+    private void activateExtraSpin(int column, String matchingSymbol) {
+        isExtraSpinActive = true;
+        extraSpinColumn = column;
+        extraSpinsRemaining = 2; // Asegurar que siempre sean 2 tiradas
+        
+        // Notificar a la UI
+        if (winListener != null) {
+            winListener.onExtraSpinActivated(column);
         }
     }
 
@@ -224,20 +253,28 @@ public class SlotMachineLogic {
         return true;
     }
 
+    // Modificar la clase SlotMachineLogic
     public boolean canAdvance() {
-        return advancesRemaining > 0;
+        return isExtraSpinActive && extraSpinsRemaining > 0;
     }
 
-    public int getAdvanceColumn() {
-        return advanceColumn;
-    }
-
+    // Modificar la clase SlotMachineLogic
     public String advance() {
-        if (advancesRemaining > 0) {
-            advancesRemaining--;
-            return symbols[random.nextInt(symbols.length)];
+        if (isExtraSpinActive && extraSpinsRemaining > 0) {
+            String newSymbol = symbols[random.nextInt(symbols.length)];
+            extraSpinsRemaining--;
+            
+            // Solo desactivar cuando se hayan usado las dos tiradas
+            if (extraSpinsRemaining == 0) {
+                isExtraSpinActive = false;
+            }
+            return newSymbol;
         }
         return null;
+    }
+
+    public int getExtraSpinColumn() {
+        return extraSpinColumn;
     }
 
     // Añadir getters para UI
@@ -267,7 +304,7 @@ public class SlotMachineLogic {
 
     // Método para verificar si el jugador puede apostar
     public boolean canBet() {
-        return playerCredits >= currentBet;
+        return playerCredits >= currentBet && !isExtraSpinActive;
     }
 
     private void notifyWin(int amount) {

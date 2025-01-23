@@ -27,6 +27,7 @@ public class SlotMachineUI {
     private JLabel creditsLabel;
     private SlotMachineLogic logic;
     private JPanel reelsPanel;
+    private Timer blinkTimer; // Añadir como variable de clase
 
     public SlotMachineUI() {
         logic = new SlotMachineLogic();
@@ -244,13 +245,24 @@ public class SlotMachineUI {
         });
 
         advanceButton.addActionListener(e -> {
-            int column = logic.getAdvanceColumn();
+            int column = logic.getExtraSpinColumn();
             if (column >= 0 && column < reels.length) {
                 String newSymbol = logic.advance();
                 if (newSymbol != null) {
                     logic.updateReelSymbol(reels[column], newSymbol);
+                    
+                    // Verificar combinación ganadora después de cada avance
+                    logic.checkResults(reels);
+                    
+                    // Verificar si se terminaron los avances o hubo combinación ganadora
                     if (!logic.canAdvance()) {
+                        // Detener el parpadeo
+                        if (blinkTimer != null) {
+                            blinkTimer.stop();
+                        }
                         advanceButton.setEnabled(false);
+                        advanceButton.setBackground(Color.GREEN); // Restaurar color original
+                        reels[column].setBorder(null);
                     }
                 }
             }
@@ -265,9 +277,17 @@ public class SlotMachineUI {
             }
         });
 
-        logic.setWinListener(amount -> {
-            creditsLabel.setText("CRÉDITOS: " + logic.getPlayerCredits());
-            showWinMessage(amount);
+        logic.setWinListener(new SlotMachineLogic.WinListener() {
+            @Override
+            public void onWin(int amount) {
+                creditsLabel.setText("CRÉDITOS: " + logic.getPlayerCredits());
+                showWinMessage(amount);
+            }
+            
+            @Override
+            public void onExtraSpinActivated(int column) {
+                handleExtraSpin(column);
+            }
         });
     }
     
@@ -339,5 +359,25 @@ public class SlotMachineUI {
             "¡Has ganado " + amount + " créditos!",
             "¡Premio!",
             JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void handleExtraSpin(int column) {
+        // Detener el timer anterior si existe
+        if (blinkTimer != null && blinkTimer.isRunning()) {
+            blinkTimer.stop();
+        }
+        
+        // Hacer que el botón AVANZAR parpadee
+        blinkTimer = new Timer(500, e -> {
+            advanceButton.setBackground(
+                advanceButton.getBackground().equals(Color.GREEN) ?
+                Color.YELLOW : Color.GREEN
+            );
+        });
+        blinkTimer.start();
+        
+        // Resaltar la columna del comodín
+        reels[column].setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3));
+        advanceButton.setEnabled(true);
     }
 }
