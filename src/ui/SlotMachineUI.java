@@ -28,6 +28,7 @@ public class SlotMachineUI {
     private SlotMachineLogic logic;
     private JPanel reelsPanel;
     private Timer blinkTimer; // Añadir como variable de clase
+    private JPanel mainPanel; // Añadir como variable de clase
 
     public SlotMachineUI() {
         logic = new SlotMachineLogic();
@@ -48,7 +49,7 @@ public class SlotMachineUI {
         frame.setMinimumSize(new Dimension(300, 200));
 
         // Panel principal con BorderLayout
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(Color.BLACK);
 
         // Panel de rodillos con GridBagLayout
@@ -93,16 +94,14 @@ public class SlotMachineUI {
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                int iconSize = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
-                iconSize = Math.max(iconSize, 48); // Tamaño mínimo
-                
                 for (JLabel reel : reels) {
                     Icon currentIcon = reel.getIcon();
                     if (currentIcon instanceof ImageIcon) {
-                        Image img = ((ImageIcon) currentIcon).getImage();
-                        reel.setIcon(new ImageIcon(img.getScaledInstance(iconSize, iconSize, Image.SCALE_SMOOTH)));
+                        reel.setIcon(scaleIcon((ImageIcon)currentIcon));
                     }
                 }
+                // Update logic symbol size
+                logic.setSymbolSize(getCurrentIconSize());
             }
         });
 
@@ -145,6 +144,7 @@ public class SlotMachineUI {
         frame.setVisible(true);
 
         addButtonListeners();
+        addPaytablePanel(); // Añadir la tabla de pagos
     }
 
     
@@ -224,6 +224,9 @@ public class SlotMachineUI {
                 spinButton.setEnabled(false);
                 advanceButton.setEnabled(false);
                 betButton.setEnabled(false);
+                
+                // Pass current icon size to logic
+                logic.setSymbolSize(getCurrentIconSize());
                 logic.spinWithAnimation(reels);
                 
                 Timer enableTimer = new Timer(3000, event -> {
@@ -380,4 +383,61 @@ public class SlotMachineUI {
         reels[column].setBorder(BorderFactory.createLineBorder(Color.YELLOW, 3));
         advanceButton.setEnabled(true);
     }
+
+    private void addPaytablePanel() {
+        JPanel paytablePanel = new JPanel();
+        paytablePanel.setLayout(new BoxLayout(paytablePanel, BoxLayout.Y_AXIS));
+        paytablePanel.setBackground(new Color(25, 0, 50));
+        paytablePanel.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255, 150), 2));
+        
+        // Título
+        JLabel titleLabel = new JLabel("PREMIOS");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(Color.YELLOW);
+        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        paytablePanel.add(titleLabel);
+        paytablePanel.add(Box.createVerticalStrut(10));
+    
+        // Crear filas para cada símbolo
+        String[] symbolNames = {"siete", "sandia", "diamond", "campana", "apple", "dinero", "extraspin"};
+        int[] multipliers = {50, 30, 25, 20, 15, 10, 5};
+    
+        for (int i = 0; i < symbolNames.length; i++) {
+            JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+            row.setOpaque(false);
+            
+            // Cargar icono
+            URL resourceUrl = getClass().getResource("/icons/" + symbolNames[i] + ".png");
+            if (resourceUrl != null) {
+                ImageIcon icon = new ImageIcon(resourceUrl);
+                Image img = icon.getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH);
+                JLabel iconLabel = new JLabel(new ImageIcon(img));
+                row.add(iconLabel);
+            }
+    
+            // Texto del premio
+            JLabel prizeLabel = new JLabel("x3 = " + multipliers[i] + "x apuesta");
+            prizeLabel.setForeground(Color.WHITE);
+            row.add(prizeLabel);
+    
+            paytablePanel.add(row);
+            paytablePanel.add(Box.createVerticalStrut(5));
+        }
+    
+        // Modificar el mainPanel para incluir la tabla
+        mainPanel.add(paytablePanel, BorderLayout.EAST);
+    }
+    
+    private int getCurrentIconSize() {
+        int iconSize = Math.min(frame.getWidth() / 6, frame.getHeight() / 3);
+        return Math.max(iconSize, 48); // Minimum size of 48px
+    }
+
+    private ImageIcon scaleIcon(ImageIcon originalIcon) {
+        int size = getCurrentIconSize();
+        Image scaledImage = originalIcon.getImage().getScaledInstance(
+            size, size, Image.SCALE_SMOOTH);
+        return new ImageIcon(scaledImage);
+    }
+    
 }

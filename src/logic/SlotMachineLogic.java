@@ -94,14 +94,13 @@ public class SlotMachineLogic {
         try {
             for (int i = 0; i < symbols.length; i++) {
                 String path = ICON_PATH + symbols[i] + ".png";
-                URL resourceUrl = SlotMachineLogic.class.getResource(path);
-                if (resourceUrl == null) {
-                    System.err.println("No se pudo encontrar el recurso: " + path);
-                    continue;
+                URL resourceUrl = getClass().getResource(path);
+                if (resourceUrl != null) {
+                    ImageIcon originalIcon = new ImageIcon(resourceUrl);
+                    Image scaledImage = originalIcon.getImage().getScaledInstance(
+                        symbolSize, symbolSize, Image.SCALE_SMOOTH);
+                    symbolIcons[i] = new ImageIcon(scaledImage);
                 }
-                ImageIcon icon = new ImageIcon(resourceUrl);
-                Image img = icon.getImage().getScaledInstance(symbolSize, symbolSize, Image.SCALE_SMOOTH);
-                symbolIcons[i] = new ImageIcon(img);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,7 +113,7 @@ public class SlotMachineLogic {
     }
 
     public void spinWithAnimation(JLabel[] reels) {
-        // Pre-generar algunos símbolos aleatorios
+        // Pre-generate random symbols
         String[][] preGeneratedSymbols = new String[3][30];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 30; j++) {
@@ -122,16 +121,20 @@ public class SlotMachineLogic {
             }
         }
 
+        // Load and scale icons
+        loadIcons(); // Reload icons with current size
+
         for (int i = 0; i < 3; i++) {
             final int col = i;
             spinCounts[col] = 0;
             
-            spinTimers[col] = new Timer(16, new ActionListener() { // Cambiar a 16ms (aprox. 60 FPS)
+            spinTimers[col] = new Timer(16, new ActionListener() {
                 private int symbolIndex = 0;
                 
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    updateReelSymbol(reels[col], preGeneratedSymbols[col][symbolIndex++ % 30]);
+                    String symbol = preGeneratedSymbols[col][symbolIndex++ % 30];
+                    updateReelSymbol(reels[col], symbol);
                     spinCounts[col]++;
                     
                     if (spinCounts[col] >= 20 + (col * 10)) {
@@ -157,7 +160,7 @@ public class SlotMachineLogic {
         reel.setBorder(null);
         
         int index = Arrays.asList(symbols).indexOf(symbol);
-        if (index >= 0) {
+        if (index >= 0 && symbolIcons != null && index < symbolIcons.length) {
             reel.setIcon(symbolIcons[index]);
         }
         
@@ -311,5 +314,9 @@ public class SlotMachineLogic {
         if (winListener != null) {
             winListener.onWin(amount);
         }
+    }
+    
+    public String getNextSpinSymbol() {
+        return symbols[random.nextInt(symbols.length)];
     }
 }
