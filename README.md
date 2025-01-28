@@ -37,11 +37,11 @@ SlotMachineApp
    ```
 2. Navigate to the project directory:
    ```
-   cd SlotMachineApp
+   cd tragaperras
    ```
 3. Build the project using Gradle:
    ```
-   ./gradlew build
+   javac -d bin src/logic/SlotMachineLogic.java src/ui/SlotMachineUI.java src/Main.java
    ```
 4. Run the application:
    ```
