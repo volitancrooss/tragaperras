@@ -155,62 +155,38 @@ public class SlotMachineUI {
     private void createReelPanel() {
         reelsPanel = new JPanel() {
             @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                // Fondo con efecto neón futurista
-                GradientPaint neonGlow = new GradientPaint(
-                    0, 0, new Color(25, 0, 50),
-                    getWidth(), getHeight(), new Color(50, 0, 100)
-                );
-                g2d.setPaint(neonGlow);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-                
-                // Efecto de líneas de neón
-                g2d.setStroke(new BasicStroke(2f));
-                g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
-                
-                // Dibujar marcos de neón para cada rodillo
-                for (int i = 0; i < 3; i++) {
-                    int x = (getWidth() / 3) * i;
-                    
-                    GradientPaint neonBorder = new GradientPaint(
-                        x, 0, new Color(0, 255, 255, 150),
-                        x + getWidth()/3, getHeight(), new Color(255, 0, 255, 150)
-                    );
-                    g2d.setPaint(neonBorder);
-                    g2d.drawRect(x + 5, 5, (getWidth()/3) - 10, getHeight() - 10);
-                }
-                
-                // Efecto de brillo en movimiento (corregido)
-                long currentTime = System.currentTimeMillis();
-                float glowPosition = (float)((currentTime % 3000) / 3000.0);
-                
-                // Asegurar que los valores de fracción estén entre 0 y 1
-                float start = Math.max(0, glowPosition - 0.2f);
-                float middle = glowPosition;
-                float end = Math.min(1, glowPosition + 0.2f);
-                
-                if (start < end) { // Solo dibujar si los valores son válidos
-                    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f));
-                    g2d.setPaint(new LinearGradientPaint(
-                        0, 0,
-                        getWidth(), 0,
-                        new float[]{start, middle, end},
-                        new Color[]{
-                            new Color(0, 0, 0, 0),
-                            new Color(255, 255, 255, 100),
-                            new Color(0, 0, 0, 0)
-                        }
-                    ));
-                    g2d.fillRect(0, 0, getWidth(), getHeight());
-                }
+protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
+    Graphics2D g2d = (Graphics2D) g;
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    
+    // Fondo con efecto neón futurista
+    GradientPaint neonGlow = new GradientPaint(
+        0, 0, new Color(25, 0, 50, 100), // Added alpha channel transparency
+        getWidth(), getHeight(), new Color(50, 0, 100, 80) // Added alpha channel transparency 
+    );
+    g2d.setPaint(neonGlow);
+    g2d.fillRect(0, 0, getWidth(), getHeight());
+    
+    // Efecto de líneas de neón
+    g2d.setStroke(new BasicStroke(2f));
+    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+    
+    // Dibujar marcos de neón para cada rodillo
+    for (int i = 0; i < 3; i++) {
+        int x = (getWidth() / 3) * i;
+        
+        GradientPaint neonBorder = new GradientPaint(
+            x, 0, new Color(0, 255, 255, 150),
+            x + getWidth()/3, getHeight(), new Color(255, 0, 255, 150)
+        );
+        g2d.setPaint(neonBorder);
+        g2d.drawRect(x + 5, 5, (getWidth()/3) - 10, getHeight() - 10);
+    }
 
-                JPanel iconsPanel = new JPanel(new GridBagLayout());
-            iconsPanel.setOpaque(false);
-            }
+    JPanel iconsPanel = new JPanel(new GridBagLayout());
+    iconsPanel.setOpaque(false);
+}
         };
         
         // Configurar temporizador para la animación del brillo
