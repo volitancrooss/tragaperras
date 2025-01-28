@@ -16,6 +16,7 @@ import java.awt.event.ComponentEvent;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.net.URL;
+import java.awt.BasicStroke;
 
 
 public class SlotMachineUI {
@@ -29,9 +30,16 @@ public class SlotMachineUI {
     private JPanel reelsPanel;
     private Timer blinkTimer; // Añadir como variable de clase
     private JPanel mainPanel; // Añadir como variable de clase
+    private Timer creditBlinkTimer;
+    private boolean isGreen = true;
 
     public SlotMachineUI() {
         logic = new SlotMachineLogic();
+        creditBlinkTimer = new Timer(2000, e -> {
+            isGreen = !isGreen;
+            creditsLabel.repaint();
+        });
+        creditBlinkTimer.start();
     }
 
     public void createAndShowGUI() {
@@ -129,9 +137,39 @@ public class SlotMachineUI {
         betButton.setForeground(Color.WHITE);
         buttonPanel.add(betButton);
 
-        creditsLabel = new JLabel("CRÉDITOS: 5000");
+        creditsLabel = new JLabel("CRÉDITOS: 5000") {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                // LED glow effect
+                g2d.setColor(isGreen ? new Color(0, 255, 0, 50) : new Color(255, 0, 0, 50));
+                g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                
+                // Calculate center position
+                FontMetrics fm = g2d.getFontMetrics();
+                int textWidth = fm.stringWidth(getText());
+                int textHeight = fm.getHeight();
+                int x = (getWidth() - textWidth) / 2;
+                int y = ((getHeight() - fm.getDescent() + fm.getAscent()) / 2);
+                
+                // Text with glow
+                g2d.setFont(new Font("Arial", Font.BOLD, 20));
+                
+                // Outer glow
+                g2d.setColor(isGreen ? new Color(0, 255, 0, 60) : new Color(255, 0, 0, 60));
+                g2d.drawString(getText(), x+1, y-1);
+                g2d.drawString(getText(), x-1, y+1);
+                
+                // Main text
+                g2d.setColor(isGreen ? Color.GREEN : Color.RED);
+                g2d.drawString(getText(), x, y);
+            }
+        };
         creditsLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        creditsLabel.setForeground(Color.WHITE);
+        creditsLabel.setForeground(Color.GREEN);
+        creditsLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         buttonPanel.add(creditsLabel);
 
         // Añadir paneles al panel principal con márgenes
@@ -140,11 +178,11 @@ public class SlotMachineUI {
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         frame.getContentPane().add(mainPanel);
+        addPaytablePanel(); // Añadir la tabla de pagos
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
         addButtonListeners();
-        addPaytablePanel(); // Añadir la tabla de pagos
     }
 
     
@@ -153,45 +191,28 @@ public class SlotMachineUI {
     
 
     private void createReelPanel() {
-        reelsPanel = new JPanel() {
+        // Usar GridLayout con gaps horizontales y verticales
+        reelsPanel = new JPanel(new GridLayout(1, 3, 2, 0)) {
             @Override
-protected void paintComponent(Graphics g) {
-    super.paintComponent(g);
-    Graphics2D g2d = (Graphics2D) g;
-    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-    
-    // Fondo con efecto neón futurista
-    GradientPaint neonGlow = new GradientPaint(
-        0, 0, new Color(25, 0, 50, 100), // Added alpha channel transparency
-        getWidth(), getHeight(), new Color(50, 0, 100, 80) // Added alpha channel transparency 
-    );
-    g2d.setPaint(neonGlow);
-    g2d.fillRect(0, 0, getWidth(), getHeight());
-    
-    // Efecto de líneas de neón
-    g2d.setStroke(new BasicStroke(2f));
-    g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-    
-    // Dibujar marcos de neón para cada rodillo
-    for (int i = 0; i < 3; i++) {
-        int x = (getWidth() / 3) * i;
-        
-        GradientPaint neonBorder = new GradientPaint(
-            x, 0, new Color(0, 255, 255, 150),
-            x + getWidth()/3, getHeight(), new Color(255, 0, 255, 150)
-        );
-        g2d.setPaint(neonBorder);
-        g2d.drawRect(x + 5, 5, (getWidth()/3) - 10, getHeight() - 10);
-    }
-
-    JPanel iconsPanel = new JPanel(new GridBagLayout());
-    iconsPanel.setOpaque(false);
-}
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                
+                // Dibujar líneas divisorias negras
+                g2d.setColor(Color.BLACK);
+                g2d.setStroke(new BasicStroke(2));
+                
+                // Línea divisoria 1
+                int x1 = getWidth() / 3;
+                g2d.drawLine(x1, 0, x1, getHeight());
+                
+                // Línea divisoria 2
+                int x2 = (getWidth() * 2) / 3;
+                g2d.drawLine(x2, 0, x2, getHeight());
+            }
         };
-        
-        // Configurar temporizador para la animación del brillo
-        Timer glowTimer = new Timer(16, e -> reelsPanel.repaint());
-        glowTimer.start();
+        reelsPanel.setBackground(new Color(100, 50, 150));
+        reelsPanel.setOpaque(true);
     }
 
     private void addButtonListeners() {
@@ -363,7 +384,7 @@ protected void paintComponent(Graphics g) {
     private void addPaytablePanel() {
         JPanel paytablePanel = new JPanel();
         paytablePanel.setLayout(new BoxLayout(paytablePanel, BoxLayout.Y_AXIS));
-        paytablePanel.setBackground(new Color(25, 0, 50));
+        paytablePanel.setBackground(new Color(100, 50, 150));
         paytablePanel.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255, 150), 2));
         
         // Título

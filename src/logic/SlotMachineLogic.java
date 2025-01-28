@@ -42,8 +42,8 @@ public class SlotMachineLogic {
     // Valores de los símbolos (multiplicadores)
     private static final int[] symbolValues = {
         50,    // siete - mayor premio
-        30,    // sandia
-        25,    // diamond
+        30,    // diamond
+        25,    // sandia
         20,    // campana
         15,    // apple
         10,    // dinero
