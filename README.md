@@ -45,7 +45,7 @@ SlotMachineApp
    ```
 4. Run the application:
    ```
-   java -cp build/libs/SlotMachineApp.jar Main
+   java -cp bin SlotMachineApp.Main
    ```
 
 ## Contribuir
