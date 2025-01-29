@@ -19,10 +19,19 @@ SlotMachineApp
 └── README.md
 ```
 
-## Características
-- **GUI Interactiva**: La aplicación proporciona una interfaz fácil de usar para que los jugadores interactúen con la máquina tragaperras.
-- **Lógica del Juego**: La lógica central para girar los carretes y determinar las ganancias está encapsulada en la clase `SlotMachineLogic`.
-- **Recursos de Imágenes**: La aplicación incluye varias imágenes para los símbolos de la máquina tragaperras, mejorando el atractivo visual del juego.
+## ✨ Características
+- **🎨 GUI Interactiva**: La aplicación proporciona una interfaz fácil de usar para que los jugadores interactúen con la máquina tragaperras.
+- **🧠 Lógica del Juego**: La lógica central para girar los carretes y determinar las ganancias está encapsulada en la clase `SlotMachineLogic`.
+- **🖼️ Recursos de Imágenes**: La aplicación incluye varias imágenes para los símbolos de la máquina tragaperras, mejorando el atractivo visual del juego.
+
+## 🚀 Comenzando
+
+### 📋 Requisitos Previos
+- Kit de Desarrollo de Java (JDK) instalado en tu máquina.
+- Gradle para construir el proyecto.
+
+### 🏃 Ejecutar la Aplicación
+1. Clona el repositorio:
 
 ## Comenzando
 
