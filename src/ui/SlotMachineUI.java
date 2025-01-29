@@ -236,11 +236,6 @@ public class SlotMachineUI {
                 });
                 enableTimer.setRepeats(false);
                 enableTimer.start();
-            } else {
-                JOptionPane.showMessageDialog(frame, 
-                    "¡Créditos insuficientes para apostar!", 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -290,7 +285,7 @@ public class SlotMachineUI {
             }
         });
     }
-    
+
     private void setupSymbolEffects(JLabel reel) {
         reel.putClientProperty("glow", 0.0f);
         
