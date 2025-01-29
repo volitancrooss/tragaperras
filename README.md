@@ -40,25 +40,25 @@ SlotMachineApp
 - Gradle para construir el proyecto.
 
 ### Ejecutar la Aplicación
-1. Clone the repository:
+1. Clona el Repositorio:
    ```
    git clone <repository-url>
    ```
-2. Navigate to the project directory:
+2. Navega al directorio del proyecto:
    ```
    cd tragaperras
    ```
-3. Build the project using Gradle:
+3. Construye el proyecto:
    ```
    javac -d bin src/logic/SlotMachineLogic.java src/ui/SlotMachineUI.java src/Main.java
    ```
-4. Run the application:
+4. Ejecuta la aplicación:
    ```
    java -cp bin SlotMachineApp.Main
    ```
 
-## Contribuir
+## 🤝 Contribuir
 ¡Las contribuciones son bienvenidas! No dudes en enviar una solicitud de extracción o abrir un problema para cualquier mejora o corrección de errores.
 
-## Licencia
+## 📄 Licencia
 Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
