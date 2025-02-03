@@ -214,7 +214,7 @@ public class SlotMachineUI {
                 g2d.drawLine(x2, 0, x2, getHeight());
             }
         };
-        reelsPanel.setBackground(new Color(100, 50, 150));
+        reelsPanel.setBackground(new Color(0, 128, 0)); // Verde césped
         reelsPanel.setOpaque(true);
     }
 
@@ -388,7 +388,7 @@ public class SlotMachineUI {
             }
         };
         paytablePanel.setLayout(new BoxLayout(paytablePanel, BoxLayout.Y_AXIS));
-        paytablePanel.setBackground(new Color(100, 50, 150));
+        paytablePanel.setBackground(Color.RED); // Rojo
         paytablePanel.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255, 150), 2));
         
         // Título
