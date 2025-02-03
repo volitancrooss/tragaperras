@@ -32,6 +32,7 @@ public class SlotMachineUI {
     private JPanel mainPanel; // Añadir como variable de clase
     private Timer creditBlinkTimer;
     private boolean isGreen = true;
+    private Timer resizeTimer;
 
     public SlotMachineUI() {
         logic = new SlotMachineLogic();
@@ -51,10 +52,10 @@ public class SlotMachineUI {
         
         // Configurar el tamaño inicial como un porcentaje de la pantalla
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        int width = (int)(screenSize.width * 0.4);
-        int height = (int)(screenSize.height * 0.4);
+        int width = (int)(screenSize.width * 0.8); // Aumentar el tamaño inicial
+        int height = (int)(screenSize.height * 0.8); // Aumentar el tamaño inicial
         frame.setSize(width, height);
-        frame.setMinimumSize(new Dimension(300, 200));
+        frame.setMinimumSize(new Dimension(500, 400)); // Aumentar el tamaño mínimo
 
         // Panel principal con BorderLayout
         mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -98,18 +99,20 @@ public class SlotMachineUI {
             reelsPanel.add(reels[i], gbc);
         }
 
-        // Modificar el ComponentListener para manejar el redimensionamiento de iconos
+        // Modificar el ComponentListener para manejar el redimensionamiento de iconos y contenido
         frame.addComponentListener(new ComponentAdapter() {
             @Override
             public void componentResized(ComponentEvent e) {
-                for (JLabel reel : reels) {
-                    Icon currentIcon = reel.getIcon();
-                    if (currentIcon instanceof ImageIcon) {
-                        reel.setIcon(scaleIcon((ImageIcon)currentIcon));
-                    }
+                if (resizeTimer != null && resizeTimer.isRunning()) {
+                    resizeTimer.restart();
+                } else {
+                    resizeTimer = new Timer(200, evt -> {
+                        resizeTimer.stop();
+                        new ResizeWorker().execute();
+                    });
+                    resizeTimer.setRepeats(false);
+                    resizeTimer.start();
                 }
-                // Update logic symbol size
-                logic.setSymbolSize(getCurrentIconSize());
             }
         });
 
@@ -377,7 +380,13 @@ public class SlotMachineUI {
     }
 
     private void addPaytablePanel() {
-        JPanel paytablePanel = new JPanel();
+        JPanel paytablePanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                adjustPaytableSize();
+            }
+        };
         paytablePanel.setLayout(new BoxLayout(paytablePanel, BoxLayout.Y_AXIS));
         paytablePanel.setBackground(new Color(100, 50, 150));
         paytablePanel.setBorder(BorderFactory.createLineBorder(new Color(0, 255, 255, 150), 2));
@@ -402,8 +411,7 @@ public class SlotMachineUI {
             URL resourceUrl = getClass().getResource("/icons/" + symbolNames[i] + ".png");
             if (resourceUrl != null) {
                 ImageIcon icon = new ImageIcon(resourceUrl);
-                Image img = icon.getImage().getScaledInstance(25, 25, Image.SCALE_SMOOTH);
-                JLabel iconLabel = new JLabel(new ImageIcon(img));
+                JLabel iconLabel = new JLabel(icon);
                 row.add(iconLabel);
             }
     
@@ -418,6 +426,69 @@ public class SlotMachineUI {
     
         // Modificar el mainPanel para incluir la tabla
         mainPanel.add(paytablePanel, BorderLayout.EAST);
+    }
+
+    private void adjustPaytableSize() {
+        if (resizeTimer != null && resizeTimer.isRunning()) {
+            resizeTimer.restart();
+        } else {
+            resizeTimer = new Timer(200, e -> {
+                resizeTimer.stop();
+                new ResizeWorker().execute();
+            });
+            resizeTimer.setRepeats(false);
+            resizeTimer.start();
+        }
+    }
+
+    private class ResizeWorker extends SwingWorker<Void, Void> {
+        @Override
+        protected Void doInBackground() {
+            int newSize = getCurrentIconSize();
+            int newFontSize = newSize / 6;
+
+            // Redimensionar iconos y fuentes en los rodillos
+            for (JLabel reel : reels) {
+                Icon currentIcon = reel.getIcon();
+                if (currentIcon instanceof ImageIcon) {
+                    reel.setIcon(scaleIcon((ImageIcon) currentIcon));
+                }
+            }
+
+            // Redimensionar iconos y fuentes en la tabla de premios
+            Component[] components = mainPanel.getComponents();
+            for (Component component : components) {
+                if (component instanceof JPanel) {
+                    JPanel panel = (JPanel) component;
+                    Component[] rows = panel.getComponents();
+                    for (Component row : rows) {
+                        if (row instanceof JPanel) {
+                            JPanel rowPanel = (JPanel) row;
+                            Component[] rowComponents = rowPanel.getComponents();
+                            for (Component rowComponent : rowComponents) {
+                                if (rowComponent instanceof JLabel) {
+                                    JLabel label = (JLabel) rowComponent;
+                                    if (label.getIcon() != null) {
+                                        ImageIcon icon = (ImageIcon) label.getIcon();
+                                        Image scaledImage = icon.getImage().getScaledInstance(newSize / 5, newSize / 5, Image.SCALE_SMOOTH);
+                                        label.setIcon(new ImageIcon(scaledImage));
+                                    } else {
+                                        label.setFont(new Font("Arial", Font.BOLD, newFontSize));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        @Override
+        protected void done() {
+            mainPanel.revalidate();
+            mainPanel.repaint();
+        }
     }
     
     private int getCurrentIconSize() {
