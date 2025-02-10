@@ -7,7 +7,7 @@ La Aplicación de Tragaperras es un juego de temática recreativa y lúdica. Nue
 Si nos adentramamos más en detalle y miramos las características del juego veremos como juenta con una estética creativa e interactiva. Desarrollado en Java y con una interfaz gráfica de usuario (GUI) que permite a los jugadores experimentar la emoción y tensión de girar los carretes y ganar premios.
 </p>
 
-
+<br>
 <h3>◆ Estructura del Proyecto</h3>
 
 ```
