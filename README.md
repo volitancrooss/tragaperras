@@ -1,4 +1,4 @@
-#Tragaperras/Jackpot
+<h1>Tragaperras/Jackpot</h1>
 
 
 ◆ Descripción General
