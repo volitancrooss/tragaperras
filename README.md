@@ -43,8 +43,7 @@ SlotMachineApp
 ```
 git clone <repository-url>
 ```
-
-      3. Navega al directorio del proyecto:
+   3. Navega al directorio del proyecto:
 ```
 cd tragaperras
 ```
