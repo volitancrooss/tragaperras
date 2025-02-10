@@ -59,7 +59,6 @@ javac -d bin src/logic/SlotMachineLogic.java src/ui/SlotMachineUI.java src/Main.
 ```
 java -cp bin SlotMachineApp.Main
 ```
-         
 
 <h5>● 🤝 Contribuir</h5>
 <p>
