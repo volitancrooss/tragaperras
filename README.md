@@ -46,7 +46,7 @@ SlotMachineApp
       ```
       
   3. Navega al directorio del proyecto:
-     ¡
+     
          ```
          cd tragaperras
          ```
