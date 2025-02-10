@@ -1,6 +1,6 @@
 <h1>Tragaperras/Jackpot</h1>
 
-
+<br>
 <h3>◆ Descripción General</h3>
 <p>
 La Aplicación de Tragaperras es un juego de temática recreativa y lúdica. Nuestro tragaperras está inspirado en los comunes Jackpot y en las clásicas tragamonedas de los bares.
@@ -25,7 +25,7 @@ SlotMachineApp
 └── README.md
 ```
 
-
+<br>
 <h3>◆ ✨ Características</h3>
 
    - 🎨 →  GUI Interactiva: La aplicación proporciona una interfaz fácil de usar para que los jugadores interactúen con la máquina tragaperras.
@@ -33,7 +33,7 @@ SlotMachineApp
    - 🧠 →  Lógica del Juego: La lógica central para girar los carretes y determinar las ganancias está encapsulada en la clase `SlotMachineLogic`.
    - 🖼️ →  Recursos de Imágenes: La aplicación incluye varias imágenes para los símbolos de la máquina tragaperras, mejorando el atractivo visual del juego y hacerlo así más adictivo y atractivo al público.
 
-
+<br>
 <h3>◆ 📌 Inicio</h3>
 <h4>◉ 🚀 Comenzando el juego</h4>
 <h5>● 📋 Requisitos Previos</h5>
