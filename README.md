@@ -35,13 +35,13 @@ SlotMachineApp
 
 
 <h3>◆ 📌 Inicio</h3>
+<h5>◉ 🚀 Comenzando el juego</h5>
+<h6>● 📋 Requisitos Previos</h6>
+   - Kit de Desarrollo de Java (JDK) instalado en tu máquina.
+   - Gradle para construir el proyecto.
 
-  ◉ 🚀 Comenzando el juego
-   ● 📋 Requisitos Previos
-      - Kit de Desarrollo de Java (JDK) instalado en tu máquina.
-      - Gradle para construir el proyecto.
-      
-   ● 🏃 Ejecutar la Aplicación
+<h6>● 🏃 Ejecutar la Aplicación</h6>
+
    1. Abre la terminal.
    2. Clona el repositorio:
 ```
@@ -61,8 +61,13 @@ java -cp bin SlotMachineApp.Main
 ```
          
 
-   ● 🤝 Contribuir
-      ¡Las contribuciones son bienvenidas! No dudes en enviar una solicitud de extracción o abrir un problema para cualquier mejora o corrección de errores.
-      
-   ● 📄 Licencia
-      Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles →  https://es.wikipedia.org/wiki/Licencia_MIT
+<h6>● 🤝 Contribuir</h6>
+<p>
+¡Las contribuciones son bienvenidas! No dudes en enviar una solicitud de extracción o abrir un problema para cualquier mejora o corrección de errores.
+<p>
+
+
+<h6>● 📄 Licencia</h6>
+<p>
+Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles →  https://es.wikipedia.org/wiki/Licencia_MIT
+<p>
