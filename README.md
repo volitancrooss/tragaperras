@@ -40,18 +40,25 @@ SlotMachineApp
 ● 🏃 Ejecutar la Aplicación
   1. Abre la terminal.
   2. Clona el repositorio:
+     
          ```
          git clone <repository-url>
          ```
-  3. Navega al directorio del proyecto:
+     
+  4. Navega al directorio del proyecto:
+     
          ```
          cd tragaperras
          ```
-  4. Construye el proyecto:
+     
+  6. Construye el proyecto:
+     
          ```
          javac -d bin src/logic/SlotMachineLogic.java src/ui/SlotMachineUI.java src/Main.java
          ```
-  5. Ejecuta la aplicación:
+     
+  8. Ejecuta la aplicación:
+     
          ```
          java -cp bin SlotMachineApp.Main
          ```
