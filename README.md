@@ -31,28 +31,27 @@ SlotMachineApp
      
 
 ◆ 📌 Inicio
-
-   ◉ 🚀 Comenzando el juego
+◉ 🚀 Comenzando el juego
    
    ● 📋 Requisitos Previos
       - Kit de Desarrollo de Java (JDK) instalado en tu máquina.
       - Gradle para construir el proyecto.
       
-   ○ 🏃 Ejecutar la Aplicación
-      1. Abre la terminal.
-      2. Clona el repositorio:
+● 🏃 Ejecutar la Aplicación
+  1. Abre la terminal.
+  2. Clona el repositorio:
          ```
          git clone <repository-url>
          ```
-      3. Navega al directorio del proyecto:
+  3. Navega al directorio del proyecto:
          ```
          cd tragaperras
          ```
-      3. Construye el proyecto:
+  4. Construye el proyecto:
          ```
          javac -d bin src/logic/SlotMachineLogic.java src/ui/SlotMachineUI.java src/Main.java
          ```
-      4. Ejecuta la aplicación:
+  5. Ejecuta la aplicación:
          ```
          java -cp bin SlotMachineApp.Main
          ```
